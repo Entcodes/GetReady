@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-season="autumn" data-tod="day" data-lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Study Grove · 六级学习小屋</title>
+<meta name="description" content="游戏化的英语六级学习小屋：单词库、间隔复习与金句信箱，支持离线使用。" />
+<meta name="theme-color" content="#d6772c" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="学习小屋" />
+<link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<div class="app">
+
+  <!-- ======= TOP HUD ======= -->
+  <header class="hud">
+    <div class="hud-brand">
+      <span class="brand-mark"></span>
+      <div>
+        <h1 data-i18n="appTitle">六级学习小屋</h1>
+        <p class="brand-sub" data-i18n="appSub">虚拟学习空间 · 间隔复习</p>
+      </div>
+    </div>
+
+    <!-- 四季时钟 -->
+    <div class="clock" id="clock">
+      <svg class="clock-face" viewBox="0 0 100 100" aria-hidden="true">
+        <circle class="clock-rim" cx="50" cy="50" r="46"></circle>
+        <circle class="clock-body" cx="50" cy="50" r="41"></circle>
+        <g id="clockTicks"></g>
+        <line class="hand hour" id="handH" x1="50" y1="50" x2="50" y2="26"></line>
+        <line class="hand minute" id="handM" x1="50" y1="50" x2="50" y2="17"></line>
+        <line class="hand second" id="handS" x1="50" y1="52" x2="50" y2="14"></line>
+        <circle class="clock-pin" cx="50" cy="50" r="3"></circle>
+      </svg>
+      <div class="clock-readout">
+        <strong id="digitalTime">--:--:--</strong>
+        <span id="dateLine" class="muted">----</span>
+        <span class="season-chip" id="seasonChip">
+          <i class="season-dot"></i><em id="seasonName">秋</em>
+          <button class="chip-unpin" id="unpinSeason" hidden title="取消手动季节">×</button>
+        </span>
+      </div>
+      <div class="season-switch" role="group" aria-label="季节">
+        <button data-season-btn="spring" title="Spring"><span data-i18n="seasonSpring">春</span></button>
+        <button data-season-btn="summer" title="Summer"><span data-i18n="seasonSummer">夏</span></button>
+        <button data-season-btn="autumn" title="Autumn"><span data-i18n="seasonAutumn">秋</span></button>
+        <button data-season-btn="winter" title="Winter"><span data-i18n="seasonWinter">冬</span></button>
+      </div>
+    </div>
+
+    <!-- 中英文切换 -->
+    <div class="hud-right">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button id="btnZh" class="lang-btn active">中文</button>
+        <button id="btnEn" class="lang-btn">EN</button>
+      </div>
+      <button class="ghost-btn" id="btnHelp" data-i18n="helpBtn">学习原理</button>
+      <button class="ghost-btn danger" id="btnReset" data-i18n="resetBtn">重置进度</button>
+    </div>
+  </header>
+
+  <!-- ======= MAIN ======= -->
+  <main class="stage">
+
+    <!-- 虚拟学习空间 -->
+    <section class="room" id="room" aria-label="虚拟学习空间">
+      <div class="wall">
+        <div class="wall-window">
+          <div class="sky"></div>
+          <div class="hills"></div>
+          <div class="particles" id="particles"></div>
+          <div class="window-frame"></div>
+        </div>
+        <div class="poster" id="focusPoster">
+          <p class="poster-title" data-i18n="posterTitle">今日专注</p>
+          <p class="poster-num"><span id="todayCards">0</span><small data-i18n="cardsUnit">张卡</small></p>
+          <p class="poster-line muted" id="streakLine" data-i18n="streakZero">还没有连续记录</p>
+        </div>
+      </div>
+
+      <div class="floor"></div>
+
+      <!-- 窗口一：桌上的书架 -->
+      <div class="desk">
+        <div class="desk-top"></div>
+        <div class="desk-leg left"></div>
+        <div class="desk-leg right"></div>
+
+        <button class="shelf" id="openShelf" title="书架 · 单词库">
+          <span class="shelf-label" data-i18n="shelfLabel">书架 · 单词库</span>
+          <span class="shelf-frame">
+            <span class="row r1"><i></i><i></i><i></i><i></i><i></i></span>
+            <span class="row r2"><i></i><i></i><i></i><i></i></span>
+            <span class="row r3"><i></i><i></i><i></i><i></i><i></i></span>
+          </span>
+          <span class="shelf-badge" id="badgeWords">0</span>
+        </button>
+
+        <div class="lamp"><span class="lamp-shade"></span><span class="lamp-stem"></span><span class="lamp-base"></span></div>
+        <div class="mug"></div>
+      </div>
+
+      <!-- 三只宠物 -->
+      <div class="pet-zone" id="petZone"></div>
+
+      <div class="bubble-layer" id="bubbleLayer"></div>
+    </section>
+
+    <!-- 右侧：窗口二 + 窗口三 -->
+    <aside class="side">
+      <section class="panel panel-test" id="panelTest">
+        <header class="panel-head">
+          <h2 data-i18n="window2Title">窗口二 · 六级题库</h2>
+          <p class="panel-sub muted" data-i18n="window2Sub">按遗忘曲线安排复习</p>
+        </header>
+        <div class="queue-grid">
+          <div class="qcell"><b id="dueNow">0</b><span data-i18n="dueNow">到期复习</span></div>
+          <div class="qcell"><b id="newLeft">0</b><span data-i18n="newLeft">未学新题</span></div>
+          <div class="qcell"><b id="masteryPct">0%</b><span data-i18n="mastery">掌握度</span></div>
+        </div>
+        <div class="filter-row" id="sectionFilter"></div>
+        <button class="primary-btn" id="btnStartQuiz"><span data-i18n="startQuiz">开始测试</span></button>
+        <p class="panel-note muted" data-i18n="quizNote">答完自动排入下一个复习点</p>
+      </section>
+
+      <section class="panel panel-mail" id="panelMail">
+        <header class="panel-head">
+          <h2 data-i18n="window3Title">窗口三 · 灵感信箱</h2>
+          <p class="panel-sub muted" data-i18n="window3Sub">点一下，收一封短信</p>
+        </header>
+        <div class="mailbox" id="mailboxBtn" role="button" tabindex="0" aria-label="信箱">
+          <span class="mb-body"></span>
+          <span class="mb-lid"></span>
+          <span class="mb-post">✉</span>
+          <span class="mb-badge" id="badgeMail">NEW</span>
+        </div>
+        <p class="panel-note muted" id="mailCount" data-i18n="mailZero">还没开过信</p>
+      </section>
+    </aside>
+  </main>
+
+  <!-- ======= MODALS ======= -->
+  <div class="modal" id="modalBook" hidden>
+    <div class="modal-card wide">
+      <header class="modal-head">
+        <h2 data-i18n="bookTitle">单词库</h2>
+        <div class="book-tools">
+          <input type="search" id="wordSearch" data-i18n-ph="searchWord" placeholder="搜索单词 / 释义" />
+          <select id="wordFilter">
+            <option value="all" data-i18n="filterAll">全部</option>
+            <option value="new" data-i18n="filterNew">没学过</option>
+            <option value="learning" data-i18n="filterLearning">学习中</option>
+            <option value="due" data-i18n="filterDue">今天要复习</option>
+            <option value="mastered" data-i18n="filterMastered">已掌握</option>
+          </select>
+          <button class="primary-btn small" id="btnWordDrill" data-i18n="wordDrill">单词复习</button>
+        </div>
+        <button class="close-x" data-close="modalBook">×</button>
+      </header>
+      <div class="word-stats" id="wordStats"></div>
+      <ul class="word-list" id="wordList"></ul>
+    </div>
+  </div>
+
+  <div class="modal" id="modalQuiz" hidden>
+    <div class="modal-card wide">
+      <header class="modal-head">
+        <h2 id="quizTitle" data-i18n="quizTitle">六级测试</h2>
+        <span class="quiz-progress" id="quizProgress">0 / 0</span>
+        <button class="close-x" data-close="modalQuiz">×</button>
+      </header>
+      <div class="quiz-body" id="quizBody"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalLetter" hidden>
+    <div class="modal-card letter-card">
+      <button class="close-x" data-close="modalLetter">×</button>
+      <div class="letter-paper">
+        <p class="letter-hi" data-i18n="letterHi">亲爱的同学：</p>
+        <blockquote id="letterQuote"></blockquote>
+        <p id="letterQuoteEn" class="letter-en"></p>
+        <p class="letter-author" id="letterAuthor"></p>
+        <p class="letter-note" id="letterNote"></p>
+        <div class="letter-actions">
+          <button class="ghost-btn" id="btnNextLetter" data-i18n="nextLetter">再拆一封</button>
+          <button class="ghost-btn" id="btnCopyLetter" data-i18n="copyLetter">复制</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalHelp" hidden>
+    <div class="modal-card">
+      <header class="modal-head"><h2 data-i18n="helpTitle">这个空间怎么帮你记住</h2>
+        <button class="close-x" data-close="modalHelp">×</button></header>
+      <div class="help-body" id="helpBody"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="assets/i18n.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
